@@ -188,15 +188,26 @@ export default function HomePage() {
                 </div>
                 <div className="card-body" style={{ maxHeight: 480, overflowY: 'auto' }}>
                   {result.gps && (
-                    <div className="alert alert-info py-2 small">
-                      📍 GPS: {result.gps.latitude.toFixed(5)}, {result.gps.longitude.toFixed(5)}{' '}
-                      <a
-                        href={`https://www.openstreetmap.org/?mlat=${result.gps.latitude}&mlon=${result.gps.longitude}#map=15/${result.gps.latitude}/${result.gps.longitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View on map
-                      </a>
+                    <div className="mb-3">
+                      <div className="alert alert-info py-2 small mb-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span>
+                          📍 GPS: {result.gps.latitude.toFixed(5)}, {result.gps.longitude.toFixed(5)}
+                        </span>
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${result.gps.latitude},${result.gps.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Open in Google Maps
+                        </a>
+                      </div>
+                      <iframe
+                        title="Location on Google Maps"
+                        className="ml-map rounded"
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://maps.google.com/maps?q=${result.gps.latitude},${result.gps.longitude}&z=15&output=embed`}
+                      />
                     </div>
                   )}
 
@@ -207,7 +218,7 @@ export default function HomePage() {
                           <tr key={key}>
                             <td className="metadata-key text-secondary">{key}</td>
                             <td className="metadata-value">
-                              {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                              <MetadataValue value={value} />
                             </td>
                           </tr>
                         ))}
@@ -305,6 +316,15 @@ export default function HomePage() {
       </footer>
     </>
   );
+}
+
+function MetadataValue({ value }) {
+  // Nested objects/arrays (e.g. XMP MWG face Regions) are pretty-printed so the
+  // structure stays readable instead of collapsing into one wrapped JSON line.
+  if (value !== null && typeof value === 'object') {
+    return <pre className="metadata-json mb-0">{JSON.stringify(value, null, 2)}</pre>;
+  }
+  return <>{String(value)}</>;
 }
 
 function Row({ k, v }) {
