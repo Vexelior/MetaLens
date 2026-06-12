@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './globals.css';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: 'MetaLens | Image Metadata Inspector',
