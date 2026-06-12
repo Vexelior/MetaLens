@@ -1,4 +1,4 @@
-# Image Metadata Inspector
+# MetaLens
 
 A small full-stack web app: upload any common image format and get its metadata back. Built with **React** (frontend), **Next.js API routes** (backend), and **Bootstrap 5** (styling). Deployable for free on Vercel in about two minutes.
 
@@ -15,7 +15,7 @@ A small full-stack web app: upload any common image format and get its metadata 
 ## Project structure
 
 ```
-image-metadata-app/
+MetaLens/
 ├── app/
 │   ├── api/metadata/route.js   # Backend: POST /api/metadata handler
 │   ├── layout.js               # Root layout (loads Bootstrap)
