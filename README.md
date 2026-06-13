@@ -2,7 +2,7 @@
 
 A small full-stack web app: upload any common image format and get its metadata back. Built with **React** (frontend), **Next.js API routes** (backend), and **Bootstrap 5** (styling). Deployable for free on Vercel in about two minutes.
 
-![Stack](https://img.shields.io/badge/Next.js-14-black) ![React](https://img.shields.io/badge/React-18-blue) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple) ![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)
+![Stack](https://img.shields.io/badge/Next.js-14-black) ![React](https://img.shields.io/badge/React-18-blue) ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple) ![Tests](https://img.shields.io/badge/tests-30%20passing-brightgreen)
 
 ## What it does
 

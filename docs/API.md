@@ -93,15 +93,29 @@ Notes on `embedded`:
 
 ### Error responses
 
-All errors return JSON with a single `error` string.
+All errors return JSON with three fields:
 
-| Status | Meaning | Example message |
+- `error` — a short, human-readable sentence summarizing what went wrong.
+- `code` — a stable, machine-readable identifier you can branch on.
+- `detail` — a longer explanation of the likely cause and how to fix it, suitable for showing directly to an end user.
+
+```json
+{
+  "error": "Unsupported or unrecognized file type. Supported formats: JPEG, PNG, GIF, WebP, BMP, TIFF, AVIF, ICO.",
+  "code": "UNSUPPORTED_FORMAT",
+  "detail": "MetaLens identifies images by their actual contents, not their file name. This file's bytes do not match any supported image format..."
+}
+```
+
+| Status | `code` | Meaning |
 |---|---|---|
-| `400` | No file attached, empty file, or body wasn't multipart | `"No file received. Attach an image under the \"image\" field."` |
-| `405` | Wrong method (e.g. GET) | Includes a curl usage example |
-| `413` | File exceeds 15 MB | `"File too large. Maximum size is 15 MB."` |
-| `415` | Not a recognized image format | `"Unsupported or unrecognized file type. ..."` |
-| `500` | Unexpected parsing failure | `"Something went wrong while reading the image."` |
+| `400` | `INVALID_REQUEST` | Body wasn't valid `multipart/form-data` |
+| `400` | `NO_FILE` | No image attached under the `image` field |
+| `400` | `EMPTY_FILE` | The uploaded file was 0 bytes |
+| `405` | `METHOD_NOT_ALLOWED` | Wrong method (e.g. GET); includes a curl usage example |
+| `413` | `FILE_TOO_LARGE` | File exceeds 15 MB |
+| `415` | `UNSUPPORTED_FORMAT` | Not a recognized image format |
+| `500` | `PARSE_FAILED` | Valid-looking image that couldn't be parsed |
 
 ---
 

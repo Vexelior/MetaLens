@@ -36,14 +36,31 @@ export default function HomePage() {
 
     try {
       const res = await fetch('/api/metadata', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Upload failed.');
-      } else {
+
+      // The body is usually our JSON error contract, but a platform-level
+      // failure (e.g. the host rejecting an oversized upload) can return an
+      // HTML page instead, so parsing may fail.
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        /* non-JSON response handled below via the status code */
+      }
+
+      if (res.ok && data) {
         setResult(data);
+      } else if (data?.error) {
+        setError({ title: data.error, detail: data.detail });
+      } else {
+        setError(describeHttpError(res.status));
       }
     } catch {
-      setError('Could not reach the server. Check your connection and try again.');
+      setError({
+        title: 'Could not reach the server.',
+        detail:
+          'The request never completed. Check your internet connection and try again. ' +
+          'If the problem persists, the service may be temporarily unavailable.'
+      });
     } finally {
       setLoading(false);
     }
@@ -132,7 +149,8 @@ export default function HomePage() {
 
           {error && (
             <div className="alert alert-danger mt-4 mx-auto" style={{ maxWidth: 620 }} role="alert">
-              {error}
+              <div className="fw-semibold mb-1">⚠️ {error.title}</div>
+              {error.detail && <div className="small mb-0">{error.detail}</div>}
             </div>
           )}
         </div>
@@ -316,6 +334,38 @@ export default function HomePage() {
       </footer>
     </>
   );
+}
+
+/**
+ * Fallback messages for when the server returns an error status with no usable
+ * JSON body (e.g. a host-level rejection before the request reaches the app).
+ */
+function describeHttpError(status) {
+  if (status === 413) {
+    return {
+      title: 'That image is too large to upload.',
+      detail:
+        'The server rejected the upload before it could be read. MetaLens accepts images up ' +
+        'to 15 MB — try a smaller or compressed version.'
+    };
+  }
+  if (status === 408 || status === 504) {
+    return {
+      title: 'The server took too long to respond.',
+      detail: 'Reading this image timed out. Try again, or upload a smaller image.'
+    };
+  }
+  if (status >= 500) {
+    return {
+      title: 'The server hit an unexpected error.',
+      detail:
+        'Something went wrong on our end while processing the image. Please try again in a moment.'
+    };
+  }
+  return {
+    title: `Upload failed (HTTP ${status}).`,
+    detail: 'The server rejected the request. Please try a different image.'
+  };
 }
 
 function MetadataValue({ value }) {

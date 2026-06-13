@@ -119,24 +119,37 @@ describe('extractMetadata', () => {
     expect(result.basic.megapixels).toBe(3);
   });
 
-  test('rejects empty buffers with status 400', async () => {
+  test('rejects empty buffers with a detailed 400 error', async () => {
     await expect(extractMetadata(Buffer.alloc(0), 'empty.png')).rejects.toMatchObject({
-      statusCode: 400
+      statusCode: 400,
+      code: 'EMPTY_FILE'
     });
+
+    // The detail string should be present and actually explain the problem.
+    const err = await extractMetadata(Buffer.alloc(0), 'empty.png').catch((e) => e);
+    expect(err.detail).toEqual(expect.any(String));
+    expect(err.detail.length).toBeGreaterThan(20);
+    expect(err.detail).toMatch(/0 bytes/);
   });
 
-  test('rejects non-image files with status 415', async () => {
+  test('rejects non-image files with a detailed 415 error', async () => {
     const fake = Buffer.from('%PDF-1.4 definitely not an image '.repeat(4));
-    await expect(extractMetadata(fake, 'doc.pdf')).rejects.toMatchObject({
-      statusCode: 415
-    });
+    const err = await extractMetadata(fake, 'doc.pdf').catch((e) => e);
+
+    expect(err.statusCode).toBe(415);
+    expect(err.code).toBe('UNSUPPORTED_FORMAT');
+    expect(err.message).toMatch(/unsupported/i);
+    expect(err.detail).toMatch(/file name/i); // explains detection is by contents
   });
 
-  test('rejects oversized files with status 413', async () => {
+  test('rejects oversized files with a detailed 413 error', async () => {
     const huge = Buffer.alloc(MAX_FILE_BYTES + 1, 0x89);
-    await expect(extractMetadata(huge, 'huge.png')).rejects.toMatchObject({
-      statusCode: 413
-    });
+    const err = await extractMetadata(huge, 'huge.png').catch((e) => e);
+
+    expect(err.statusCode).toBe(413);
+    expect(err.code).toBe('FILE_TOO_LARGE');
+    // Detail reports both the actual size and the limit.
+    expect(err.detail).toMatch(/15\.0 MB/);
   });
 
   test('defaults filename to "unknown"', async () => {

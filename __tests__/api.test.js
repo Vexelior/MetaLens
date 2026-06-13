@@ -49,7 +49,7 @@ describe('POST /api/metadata', () => {
     expect(body.basic.aspectRatio).toBe('4:3');
   });
 
-  test('returns 400 when no file is attached', async () => {
+  test('returns 400 with NO_FILE code when no file is attached', async () => {
     const formData = new FormData();
     formData.append('image', 'just a string, not a file');
     const req = new Request('http://localhost/api/metadata', {
@@ -61,9 +61,12 @@ describe('POST /api/metadata', () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toMatch(/no file/i);
+    expect(body.code).toBe('NO_FILE');
+    expect(body.detail).toEqual(expect.any(String));
+    expect(body.detail.length).toBeGreaterThan(20);
   });
 
-  test('returns 400 when the body is not multipart', async () => {
+  test('returns 400 with INVALID_REQUEST code when the body is not multipart', async () => {
     const req = new Request('http://localhost/api/metadata', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -72,6 +75,19 @@ describe('POST /api/metadata', () => {
 
     const res = await POST(req);
     expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.code).toBe('INVALID_REQUEST');
+    expect(body.detail).toMatch(/multipart/i);
+  });
+
+  test('returns 400 with EMPTY_FILE code for a zero-byte upload', async () => {
+    const res = await POST(makeUploadRequest(Buffer.alloc(0), 'empty.png', 'image/png'));
+    expect(res.status).toBe(400);
+
+    const body = await res.json();
+    expect(body.code).toBe('EMPTY_FILE');
+    expect(body.error).toMatch(/empty/i);
+    expect(body.detail).toMatch(/0 bytes/);
   });
 
   test('returns 415 for a non-image file', async () => {
@@ -81,12 +97,26 @@ describe('POST /api/metadata', () => {
 
     const body = await res.json();
     expect(body.error).toMatch(/unsupported/i);
+    expect(body.code).toBe('UNSUPPORTED_FORMAT');
+    expect(body.detail).toMatch(/file name/i);
   });
 
-  test('GET returns 405 with usage hint', async () => {
+  test('every error response carries error, code and detail strings', async () => {
+    const res = await POST(makeUploadRequest(Buffer.from('not an image'), 'x.txt', 'text/plain'));
+    const body = await res.json();
+
+    expect(res.ok).toBe(false);
+    for (const field of ['error', 'code', 'detail']) {
+      expect(typeof body[field]).toBe('string');
+      expect(body[field].length).toBeGreaterThan(0);
+    }
+  });
+
+  test('GET returns 405 with a code and usage hint', async () => {
     const res = await GET();
     expect(res.status).toBe(405);
     const body = await res.json();
+    expect(body.code).toBe('METHOD_NOT_ALLOWED');
     expect(body.example).toContain('curl');
   });
 });
