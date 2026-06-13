@@ -326,7 +326,7 @@ export default function HomePage() {
         <div className="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2" style={{ maxWidth: 980 }}>
           <span className="ml-brand text-white">
             <img src="/favicon.svg" alt="MetaLens logo" className="ml-logo" />    
-            Copyright © 2026 Bank Statement Converter Ltd.
+            Copyright © 2026 MetaLens Ltd.
           </span>
           <span className="small text-secondary">
           </span>
